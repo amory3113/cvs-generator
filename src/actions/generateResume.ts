@@ -90,26 +90,25 @@ export async function generateTailoredResume(
   const ai = new GoogleGenAI({ apiKey });
 
   // --- 3. Build the prompt ---
-  const prompt = `You are an expert ATS (Applicant Tracking System) resume optimizer.
+  const prompt = `You are an expert, ruthless ATS (Applicant Tracking System) resume optimizer.
 
 You will receive two inputs:
 1. A MASTER RESUME in JSON format — this is the single source of truth.
 2. A JOB DESCRIPTION — this is the target role to tailor the resume for.
 
 Your task:
-- Filter and re-prioritize the skills, projects, and education entries so they best match the job description.
-- Within each skill category, keep only the skills that are relevant to the job and order them by relevance (most relevant first).
-- Select and reorder the projects so the most relevant ones appear first. Remove projects that add no value for this specific role.
-- Rewrite each kept project's description to emphasize the aspects most relevant to the job description, but do NOT invent or fabricate any details.
-- Update the "title" field inside "personalInfo" to match the job title from the job description.
-- Keep ALL "personalInfo" fields (name, phone, email, location, languages) unchanged — copy them exactly.
-- Keep the "education" entries unchanged — copy them exactly.
+- FILTER AGGRESSIVELY. If a skill, technology, or project does not directly support the requirements of the job description, REMOVE IT completely.
+- BE RUTHLESS with skill categories. If a category (e.g., "mobile", "infrastructure_and_qa") is completely irrelevant to the job (e.g., Android skills for a Web/QA job), return an EMPTY ARRAY [] for that category.
+- STRICT LIMIT: Select a MAXIMUM of 3 most relevant projects. Drop all other projects. 
+- REWRITE the descriptions of the kept projects to heavily emphasize the keywords, skills, and responsibilities mentioned in the job description (e.g., focus on TypeScript, testing, UI elements, automation if the job requires it). Do NOT invent facts, but shift the focus.
+- Update the "title" field inside "personalInfo" to EXACTLY match the job title from the job description.
+- Keep ALL "personalInfo" fields (name, phone, email, location, languages) unchanged.
+- Keep the "education" entries unchanged.
 
 CRITICAL RULES:
-- You MUST NOT hallucinate, invent, or add any skills, technologies, projects, or experience that are not present in the master resume.
-- You may only SELECT FROM and REORDER the existing data. You may rephrase project descriptions for emphasis, but every claim must be grounded in the original text.
+- ZERO HALLUCINATIONS: You MUST NOT invent or add any skills, technologies, projects, or experience that are not present in the master resume.
+- Only SELECT FROM and REWRITE the existing data.
 - Every skill you include must exist verbatim in the master resume.
-- Every project you include must exist in the master resume (same name).
 
 === MASTER RESUME (JSON) ===
 ${masterResumeRaw}
@@ -117,11 +116,11 @@ ${masterResumeRaw}
 === JOB DESCRIPTION ===
 ${jobDescription}
 
-Return ONLY the tailored resume as a JSON object matching the provided schema.`;
+Return ONLY the tailored resume as a JSON object matching the provided schema. Do not return empty categories if they can be omitted, but strictly follow the JSON schema structure.`;
 
   // --- 4. Call Gemini with structured JSON output ---
   const response = await ai.models.generateContent({
-    model: "gemini-3.8-flash",
+    model: "gemini-3.5-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
