@@ -26,7 +26,7 @@ export default function ResumePreview({ data }: ResumePreviewProps) {
       "
     >
       {/* ── Header ────────────────────────────────────────────────── */}
-      <header className="mb-5 border-b border-neutral-300 pb-4">
+      <header className="mb-2 pb-4">
         <h1 className="text-2xl font-bold tracking-tight">
           {personalInfo.name}
         </h1>
@@ -41,13 +41,36 @@ export default function ResumePreview({ data }: ResumePreviewProps) {
             .join(" • ")}
         </p>
 
-        {personalInfo.languages.length > 0 && (
-          <p className="mt-1 text-sm text-neutral-600">
-            <span className="font-semibold">Languages: </span>
-            {personalInfo.languages.join(", ")}
-          </p>
-        )}
+        {/* Рядок з GitHub та LinkedIn */}
+        <div className="mt-0.5 flex justify-center gap-2 text-sm text-blue-600">
+          {personalInfo.github && (
+            <a href={personalInfo.github} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              GitHub
+            </a>
+          )}
+
+          {personalInfo.github && personalInfo.linkedin && (
+            <span className="text-neutral-800">·</span>
+          )}
+
+          {personalInfo.linkedin && (
+            <a href={personalInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              LinkedIn
+            </a>
+          )}
+        </div>
+
       </header>
+
+      {/* ── Summary ────────────────────────────────────────────────── */}
+      {data.summary && (
+        <section className="mb-5">
+          <h2 className="mb-2 text-lg font-bold uppercase tracking-wide border-b border-neutral-200 pb-1">
+            Summary
+          </h2>
+          <p className="text-sm leading-relaxed">{data.summary}</p>
+        </section>
+      )}
 
       {/* ── Skills ─────────────────────────────────────────────────── */}
       <section className="mb-5">
@@ -101,7 +124,7 @@ export default function ResumePreview({ data }: ResumePreviewProps) {
       </section>
 
       {/* ── Education ──────────────────────────────────────────────── */}
-      <section>
+      <section className="mb-5">
         <h2 className="mb-2 text-lg font-bold uppercase tracking-wide border-b border-neutral-200 pb-1">
           Education
         </h2>
@@ -122,6 +145,16 @@ export default function ResumePreview({ data }: ResumePreviewProps) {
           ))}
         </div>
       </section>
+
+      {/* ── Languages ──────────────────────────────────────────────── */}
+      {personalInfo.languages.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-bold uppercase tracking-wide border-b border-neutral-200 pb-1">
+            Languages
+          </h2>
+          <p className="text-sm">{personalInfo.languages.join(", ")}</p>
+        </section>
+      )}
     </article>
   );
 }

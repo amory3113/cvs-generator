@@ -18,9 +18,20 @@ const resumeJsonSchema = {
         phone: { type: "string" },
         email: { type: "string" },
         location: { type: "string" },
+        github: { type: "string" },
+        linkedin: { type: "string" },
         languages: { type: "array", items: { type: "string" } },
       },
-      required: ["name", "title", "phone", "email", "location", "languages"],
+      required: [
+        "name",
+        "title",
+        "phone",
+        "email",
+        "location",
+        "github",
+        "linkedin",
+        "languages",
+      ],
     },
     education: {
       type: "array",
@@ -64,8 +75,9 @@ const resumeJsonSchema = {
         required: ["name", "role", "description", "technologies"],
       },
     },
+    summary: { type: "string" },
   },
-  required: ["personalInfo", "education", "skills", "projects"],
+  required: ["personalInfo", "summary", "education", "skills", "projects"],
 } as const;
 
 export async function generateTailoredResume(
@@ -80,14 +92,14 @@ export async function generateTailoredResume(
   );
   const masterResumeRaw = await fs.readFile(masterResumePath, "utf-8");
 
-  // --- 2. Initialise the Gemini client ---
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  // --- 2. Read both API keys ---
+  const freeKey = process.env.GEMINI_FREE_API_KEY;
+  const paidKey = process.env.GEMINI_PAID_API_KEY;
+  if (!freeKey || !paidKey) {
     throw new Error(
-      "Missing GEMINI_API_KEY environment variable. Add it to .env.local.",
+      "Missing GEMINI_FREE_API_KEY or GEMINI_PAID_API_KEY environment variable. Add both to .env.local.",
     );
   }
-  const ai = new GoogleGenAI({ apiKey });
 
   // --- 3. Build the prompt ---
   const prompt = `You are an expert, ruthless ATS (Applicant Tracking System) resume optimizer.
@@ -101,6 +113,7 @@ Your task:
 - BE RUTHLESS with skill categories. If a category (e.g., "mobile", "infrastructure_and_qa") is completely irrelevant to the job (e.g., Android skills for a Web/QA job), return an EMPTY ARRAY [] for that category.
 - STRICT LIMIT: Select a MAXIMUM of 3 most relevant projects. Drop all other projects. 
 - REWRITE the descriptions of the kept projects to heavily emphasize the keywords, skills, and responsibilities mentioned in the job description (e.g., focus on TypeScript, testing, UI elements, automation if the job requires it). Do NOT invent facts, but shift the focus.
+- REWRITE the "summary" to create a compelling 2-3 sentence professional summary that perfectly aligns the candidate's background with the specific job description.
 - Update the "title" field inside "personalInfo" to EXACTLY match the job title from the job description.
 - Keep ALL "personalInfo" fields (name, phone, email, location, languages) unchanged.
 - Keep the "education" entries unchanged.
@@ -118,17 +131,42 @@ ${jobDescription}
 
 Return ONLY the tailored resume as a JSON object matching the provided schema. Do not return empty categories if they can be omitted, but strictly follow the JSON schema structure.`;
 
-  // --- 4. Call Gemini with structured JSON output ---
-  const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
+  // --- 4. Call Gemini with free-tier → paid-tier fallback ---
+  const requestConfig = {
+    model: "gemini-3.8-flash",
     contents: prompt,
     config: {
-      responseMimeType: "application/json",
+      responseMimeType: "application/json" as const,
       responseSchema: resumeJsonSchema,
-    }
-  });
+    },
+  };
 
-  const rawText = response.text;
+  let rawText: string | undefined;
+
+  try {
+    const freeAi = new GoogleGenAI({ apiKey: freeKey });
+    const response = await freeAi.models.generateContent(requestConfig);
+    rawText = response.text;
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+
+    const isHighDemand =
+      message.includes("503") ||
+      message.includes("high demand") ||
+      message.includes("unavailable");
+
+    if (!isHighDemand) {
+      throw err;
+    }
+
+    // Retry with the paid key
+    console.warn("[generateTailoredResume] Free tier unavailable (503). Falling back to paid key.");
+    const paidAi = new GoogleGenAI({ apiKey: paidKey });
+    const response = await paidAi.models.generateContent(requestConfig);
+    rawText = response.text;
+  }
+
   if (!rawText) {
     throw new Error("Gemini returned an empty response.");
   }

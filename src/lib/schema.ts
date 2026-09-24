@@ -8,6 +8,8 @@ const personalInfoSchema = z.object({
   phone: z.string(),
   email: z.string().email(),
   location: z.string(),
+  github: z.string().url().optional(),
+  linkedin: z.string().url().optional(),
   languages: z.array(z.string()),
 });
 
@@ -36,6 +38,7 @@ const projectSchema = z.object({
 
 export const resumeSchema = z.object({
   personalInfo: personalInfoSchema,
+  summary: z.string(),
   education: z.array(educationSchema),
   skills: skillsSchema,
   projects: z.array(projectSchema),
