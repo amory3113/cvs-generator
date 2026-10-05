@@ -56,7 +56,7 @@ export default function Home() {
       </header>
 
       {/* ── Main two-column layout ───────────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-4 py-8 lg:grid lg:grid-cols-2 lg:gap-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 xl:grid xl:grid-cols-[minmax(0,1fr)_auto] xl:gap-8">
         {/* ── Left: Controls ─────────────────────────────────────── */}
         <section className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
@@ -131,13 +131,14 @@ export default function Home() {
         </section>
 
         {/* ── Right: Preview ─────────────────────────────────────── */}
-        <section className="mt-8 lg:mt-0">
+        {/* The sheet keeps its real A4 width; narrow screens scroll instead of squashing it. */}
+        <section className="mt-8 max-xl:overflow-x-auto xl:mt-0">
           {resumeData ? (
             <div ref={resumeRef}>
               <ResumePreview data={resumeData} />
             </div>
           ) : (
-            <div className="flex min-h-[297mm] items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-white text-neutral-400">
+            <div className="mx-auto flex min-h-[297mm] w-[210mm] max-w-full items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-white text-neutral-400">
               <p className="max-w-xs text-center text-sm leading-relaxed">
                 Paste a job description and click{" "}
                 <span className="font-semibold text-neutral-500">Generate</span>{" "}

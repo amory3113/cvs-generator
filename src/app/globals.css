@@ -17,10 +17,12 @@
   --font-resume: Arial, Helvetica, "Liberation Sans", sans-serif;
 }
 
+/* Zero page margins stop the browser from printing its date/URL/page-number
+   headers and footers; the resume adds the margins itself as padding. */
 @media print {
   @page {
     size: A4;
-    margin: 14mm 16mm;
+    margin: 0;
   }
 }
 

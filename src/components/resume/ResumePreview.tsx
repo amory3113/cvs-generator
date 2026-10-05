@@ -1,7 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import type { Resume } from "@/src/lib/schema";
 
-// Human-readable labels for the snake_case skill category keys.
 const skillCategoryLabels: Record<string, string> = {
   mobile: "Mobile",
   web_and_backend: "Web & Backend",
@@ -12,10 +11,17 @@ const skillCategoryLabels: Record<string, string> = {
 
 const linkClass = "text-resume-link underline";
 
+function formatPhone(phone: string): string {
+  const match = phone
+    .replace(/[\s-]/g, "")
+    .match(/^(\+\d{1,3})(\d{3})(\d{3})(\d{3})$/);
+  return match ? match.slice(1).join(" ") : phone;
+}
+
 // Section title: bold accent-coloured caps with a thin rule underneath.
 function SectionHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="mb-1.5 break-after-avoid border-b border-resume-accent pb-0.5 text-[15px] font-bold uppercase tracking-wide text-resume-accent">
+    <h2 className="mb-1.5 break-after-avoid border-b-2 border-resume-accent pb-0.5 text-[15px] font-bold uppercase text-resume-accent">
       {children}
     </h2>
   );
@@ -44,7 +50,7 @@ export default function ResumePreview({ data }: ResumePreviewProps) {
 
   const contactItems: ReactNode[] = [
     personalInfo.location,
-    personalInfo.phone,
+    personalInfo.phone && formatPhone(personalInfo.phone),
     personalInfo.email && (
       <a href={`mailto:${personalInfo.email}`} className={linkClass}>
         {personalInfo.email}
@@ -76,21 +82,23 @@ export default function ResumePreview({ data }: ResumePreviewProps) {
   ].filter(Boolean);
 
   return (
+    // Fixed A4 sheet on screen; in print the padding acts as the page margin
+    // (@page margin is 0) and is repeated on every page via box-decoration-clone.
     <article
       className="
-        mx-auto min-h-[297mm] max-w-[210mm]
-        bg-white font-resume text-[13px] leading-[1.3] text-black
-        px-12 py-10 shadow-lg
-        print:m-0 print:min-h-0 print:p-0 print:shadow-none
+        mx-auto min-h-[297mm] w-[210mm] shrink-0
+        bg-white font-resume text-[15px] leading-[1.2] text-black
+        px-[18mm] py-[15mm] shadow-lg box-decoration-clone
+        print:m-0 print:min-h-0 print:w-auto print:shadow-none
       "
     >
       {/* ── Header ────────────────────────────────────────────────── */}
-      <header className="space-y-0.5 text-center">
-        <h1 className="text-[25px] font-bold uppercase leading-tight tracking-wide text-resume-accent">
+      <header className="text-center">
+        <h1 className="text-[20px] font-bold uppercase leading-tight text-resume-accent">
           {personalInfo.name}
         </h1>
 
-        <p className="text-[15px]">{personalInfo.title}</p>
+        <p className="text-[14px]">{personalInfo.title}</p>
 
         <DotList items={contactItems} />
         <DotList items={profileLinks} />
