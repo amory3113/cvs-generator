@@ -10,6 +10,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Resume palette + typeface, sampled from the hand-made reference CV */
+  --color-resume-accent: #1f4e79;
+  --color-resume-link: #0563c1;
+  --font-resume: Arial, Helvetica, "Liberation Sans", sans-serif;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 16mm;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
